@@ -2,7 +2,7 @@
 # -*- Coding UTF-8 -*-
 # varbee.py - the classes used for the VarBee model
 """
-VarBee.py
+varbee.py
 
 @author: David Nicholson
 
@@ -15,6 +15,8 @@ contained are as follows:
     - Hive
     - Flower
     """
+import random
+import numpy as np
 
 class Insect():
     """
@@ -37,10 +39,10 @@ class Insect():
         """
 
         self.set_lifespan(lifespan)
+        self.set_mode_list(mode_list)
         self.set_current_mode(current_mode)
         self.set_virus_present(virus_present)
         self.set_environment(environment)
-        self.set_mode_list(mode_list)
 
     def change_mode(self, mode):
         """
@@ -57,49 +59,64 @@ class Insect():
     ###########################################################################
 
     def get_lifespan(self):
+        """return the lifespan"""
         return self._lifespan
 
     def get_current_mode(self):
+        """return the current mode"""
         return self._current_mode
 
     def get_virus_present(self):
+        """return the virus presence or absence"""
         return self._virus_present
 
     def get_environment(self):
+        """return the environment"""
         return self._environment
 
     def get_mode_list(self):
+        """return the mode list"""
         return self._mode_list
 
     def set_lifespan(self, value):
+        """Set the lifespan"""
         self._lifespan = value
 
     def set_current_mode(self, value):
-        if value in mode_list:
+        """Set the current mode"""
+        if value in self.mode_list:
             self._current_mode = value
 
     def set_virus_present(self, value):
+        """Set the virus presence or absence"""
         self._virus_present = value
 
     def set_environment(self, value):
+        """Set the environment"""
         self._environment = value
 
     def set_mode_list(self, value):
+        """Set the mode list"""
         self._mode_list = value
 
     def del_lifespan(self):
+        """Delete the lifespan"""
         del self._lifespan
 
     def del_current_mode(self):
+        """Delete the current mode"""
         del self._current_mode
 
     def del_virus_present(self):
+        """Delete the virus presence or absence"""
         del self._virus_present
 
     def del_environment(self):
+        """Delete the environment"""
         del self._environment
 
     def del_mode_list(self):
+        """Delete the mode list"""
         del self._mode_list
 
     lifespan = property(get_lifespan, set_lifespan, del_lifespan,
@@ -111,16 +128,17 @@ class Insect():
     environment = property(get_environment, set_environment, del_environment,
                            "The environment")
     mode_list = property(get_mode_list, set_mode_list, del_mode_list,
-                           "The list of valid modes")
+                         "The list of valid modes")
 
 class Bee(Insect):
     """
     The class representing the Bee. contains all of the attributes of the
     Insect class, plus those needed by the Bee class.
     """
-    def __init__(self, lifespan, current_mode, virus_present, environment,
-                 mode_list, known_flower_locations, max_nectar_level,
-                 nectar_level, current_position):
+    def __init__(self, lifespan=100, current_mode="SEARCH",
+                 virus_present=False, environment=(200,200),
+                 mode_list=["SEARCH"], known_flower_locations=[],
+                 max_nectar_level=100):
         """
         Initialise the Bee class
 
@@ -129,7 +147,7 @@ class Bee(Insect):
         current_mode:           The current objective of the insect, i.e. what
                                 it is currently aiming to do
         virus_present:          True if the virus is present, False otherwise
-        environment:            A copy of the environment the agents occupy
+        environment:            The size of the environment in a tuple
         mode_list:              A list of strings describing the valid modes
         known_flower_locations: A list of tuples containing the coordinates
                                 of known flowers (i.e. food sources)
@@ -141,11 +159,26 @@ class Bee(Insect):
         self._known_flower_locations = known_flower_locations
         self._max_nectar_level = max_nectar_level
         self._nectar_level = 0
+        self._current_position = self.set_initial_position()
+        # Create the move array. I use a variable to hold it for
+        # speed reasons.
+        self.move = np.array([[-1, -1],
+                             [-1, 0],
+                             [-1, 1],
+                             [0, -1],
+                             [0, 1],
+                             [1, -1],
+                             [1, 0],
+                             [1, 1]])
 
-    def move(self):
-        pass
+    def random_move(self):
+        """
+        Move the bee randomly. Choose a direction from the numpy array using
+        random.choice, then set the new location by summing the arrays.
+        """
+        self.set_position(self.get_position() + random.choice(self.move))
 
-    def search(self):
+    def search_move(self):
         pass
 
     def feed(self):
@@ -159,3 +192,39 @@ class Bee(Insect):
 
     def get_flower_locations(self):
         pass
+
+    def set_initial_position(self):
+        """
+        Sets the initial position of the agent
+
+        returns: A numpy array with the position
+        """
+        # Find the size of the environment
+        env_width = self.get_environment()[0]
+        env_height = self.get_environment()[1]
+
+        # Return an array with a random location
+        # In the future first generate hives, then add bees?
+        return np.array([random.choice(range(env_width)),
+                         random.choice(range(env_height))])
+
+    def set_position(self, position):
+        """
+        Set the current position. Takes a numpy array
+        """
+        self._current_position = position
+
+    def get_position(self):
+        """
+        Get the current position
+        """
+        return self._current_position
+
+    def del_position(self):
+        """
+        Delete the current position
+        """
+        del self._current_position
+
+    current_position = property(get_position, set_position, del_position,
+                                "The current position")

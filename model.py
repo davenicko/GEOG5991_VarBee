@@ -10,3 +10,11 @@
 # Place bees in hives
 
 # Place mites
+
+import varbee
+
+bee = varbee.Bee()
+
+for i in range(100):
+    print("position number ", i, bee.get_position())
+    bee.random_move()
