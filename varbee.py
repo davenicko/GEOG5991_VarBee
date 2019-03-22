@@ -136,8 +136,11 @@ class Bee(Insect):
     Insect class, plus those needed by the Bee class.
     """
     def __init__(self, lifespan=100, current_mode="SEARCH",
-                 virus_present=False, environment=(200,200),
-                 mode_list=["SEARCH"], known_flower_locations=[],
+                 virus_present=False, environment=[],
+                 mode_list=["SEARCH",
+                            "FORAGE"],
+                 hive_location=(25,25),
+                 known_flower_locations=[],
                  max_nectar_level=100):
         """
         Initialise the Bee class
@@ -147,7 +150,8 @@ class Bee(Insect):
         current_mode:           The current objective of the insect, i.e. what
                                 it is currently aiming to do
         virus_present:          True if the virus is present, False otherwise
-        environment:            The size of the environment in a tuple
+        environment:            The environment containing flower and hive
+                                locations
         mode_list:              A list of strings describing the valid modes
         known_flower_locations: A list of tuples containing the coordinates
                                 of known flowers (i.e. food sources)
@@ -156,39 +160,48 @@ class Bee(Insect):
         """
         Insect.__init__(self, lifespan, current_mode, virus_present,
                         environment, mode_list)
+        self.x_size = len(environment)
+        self.y_size = len(environment[0])
         self._known_flower_locations = known_flower_locations
         self._max_nectar_level = max_nectar_level
         self._nectar_level = 0
         self._current_position = self.set_initial_position()
         # Create the move array. I use a variable to hold it for
-        # speed reasons.
+        # adding to another array to find the final position
         self.move = np.array([[-1, -1],
-                             [-1, 0],
-                             [-1, 1],
-                             [0, -1],
-                             [0, 1],
-                             [1, -1],
-                             [1, 0],
-                             [1, 1]])
+                              [-1, 0],
+                              [-1, 1],
+                              [0, -1],
+                              [0, 1],
+                              [1, -1],
+                              [1, 0],
+                              [1, 1]])
 
     def random_move(self):
         """
         Move the bee randomly. Choose a direction from the numpy array using
         random.choice, then set the new location by summing the arrays.
         """
-        self.set_position(self.get_position() + random.choice(self.move))
+        potential_position = self.get_position() + random.choice(self.move)
+        while (potential_position[0] >= self.x_size or
+               potential_position[0] < 0 or
+               potential_position[1] >= self.y_size or
+               potential_position[1] < 0):
+            potential_position = self.get_position() + random.choice(self.move)
 
-    def search_move(self):
-        pass
+        self.set_position(potential_position)
 
-    def feed(self):
-        pass
+    def update(self):
+        """
+        Update the bee status
+        """
+        self.set_lifespan(self.get_lifespan() - 1)
 
-    def forage(self):
-        pass
-
-    def swarm(self):
-        pass
+#    def feed(self):
+#        pass
+#
+#    def forage(self):
+#        pass
 
     def get_flower_locations(self):
         pass
@@ -199,14 +212,10 @@ class Bee(Insect):
 
         returns: A numpy array with the position
         """
-        # Find the size of the environment
-        env_width = self.get_environment()[0]
-        env_height = self.get_environment()[1]
-
         # Return an array with a random location
         # In the future first generate hives, then add bees?
-        return np.array([random.choice(range(env_width)),
-                         random.choice(range(env_height))])
+        return np.array([random.choice(range(self.x_size)),
+                         random.choice(range(self.y_size))])
 
     def set_position(self, position):
         """
