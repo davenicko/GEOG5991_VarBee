@@ -43,6 +43,7 @@ class Insect():
         self.set_current_mode(current_mode)
         self.set_virus_present(virus_present)
         self.set_environment(environment)
+        self.alive = True
 
     def change_mode(self, mode):
         """
@@ -140,8 +141,9 @@ class Bee(Insect):
                  mode_list=["SEARCH",
                             "FORAGE"],
                  hive_location=(),
-                 hives = {},
-                 max_nectar_level=100):
+                 hives={},
+                 max_nectar_level=100,
+                 bees=[]):
         """
         Initialise the Bee class
 
@@ -184,6 +186,7 @@ class Bee(Insect):
         self.last_target_amount = 0
         self.last_target_location = hive_location
         self.hives = hives
+        self.bees = bees
 
     def update(self):
         """
@@ -192,12 +195,16 @@ class Bee(Insect):
             - forage for nectar if at the target flower
             - drop nectar and set new target if at the hive
             - check and set the current target
+
+        Note the use of tuple() to convert the numpy array so that the
+        locations can be correctly compared.
         """
         # Set a variable containing our bees hive object
         own_hive = self.hives[self.hive_location]
 
-        if self.current_mode == "FORAGE":
+        if self.current_mode == "FORAGE" and self.alive:
             if self.check_pos(self.current_position, self.current_target):
+                # If the bee is at the hive
                 if self.check_pos(self.current_position, self.hive_location):
                     #add the nectar to the hive store
                     own_hive.hive_store += self.store
@@ -211,6 +218,22 @@ class Bee(Insect):
                     self.current_target = max(own_hive.known_flower_locations,
                                               key=lambda key:
                                               own_hive.known_flower_locations[key])
+                    # The bee has a small chance of reproducing. Note
+                    # that if the bee is infected, this is inherited.
+                    if random.randint(0, 100) < 70:
+                        self.bees.append(Bee(lifespan=100,
+                                             current_mode="SEARCH",
+                                             virus_present=self.virus_present,
+                                             environment=self.environment,
+                                             mode_list=["SEARCH",
+                                                        "FORAGE"],
+                                             hive_location=self.hive_location,
+                                             hives=self.hives,
+                                             max_nectar_level=self._max_nectar_level,
+                                             bees=self.bees))
+                        print("Bee created, number of bees = ", len(self.bees))
+                # If the bee isn't at the hive (and therefore the
+                # target flower)
                 else:
                     #if nectar level == 0, set the mode to search
                     if (self.environment[self.current_position[1]]
@@ -244,13 +267,20 @@ class Bee(Insect):
                                    [self.current_position[0]]
                     self.last_target_location = tuple(self.current_position)
 
-        self.take_move(self.current_target)
+        if self.alive:
+            self.take_move(self.current_target)
 
-        if self.current_mode == "SEARCH":
+        if self.current_mode == "SEARCH" and self.alive:
             if (self.environment[self.current_position[0]]
                     [self.current_position[1]] > 0):
                 self.current_target = self.current_position
                 self.current_mode = "FORAGE"
+
+        self.lifespan -= 1
+        # randomly determine if a bee should die. The bee will live at
+        # least 50 time-steps
+        if self.lifespan < random.randint(0, 50):
+            self.alive = False
 
     def check_pos(self, pos1, pos2):
         """
@@ -410,8 +440,7 @@ class Bee(Insect):
         """
         Delete the hive location
         """
-#        del self._hive_location
-        print("cannot delete hive location!")
+        del self._hive_location
 
     def del_current_target(self):
         """
@@ -480,25 +509,22 @@ class Hive:
         """Set the environment"""
         del self._environment
 
-#    def get_known_flower_locations(self):
-#        """return the mode list"""
-#        return self._known_flower_locations
-#
-#    def set_known_flower_locations(self, value):
-#        """Set the mode list"""
-#        self._known_flower_locations = value
-#
-#    def append_flower_location(self, location, value):
-#        """
-#        Append a new (or update an existing) flower location to the dict
-#        """
-#        self._known_flower_locations[location] = value
-#
-#    def del_known_flower_locations(self):
-#        """Delete the mode list"""
-#        del self._known_flower_locations
-
     environment = property(get_environment, set_environment, del_environment,
                            "The environment")
     hive_location = property(get_hive_location, set_hive_location,
                              del_hive_location, "The hive location")
+
+class Mite(Insect):
+    """
+    The mite class. This agent is different as it doesn't have the
+    ability to move of its own accord. The mite starts off in a random
+    place in the environment (i.e. on a flower) and waits for a bee.
+    When a bee arrives the mite attaches to the bee and is transported
+    to the hive. 
+
+    Each time-step, the mite has a chance to reproduce, and if above
+    the carrying capacity of the bee, the new mite will fall off in the
+    current location. 
+
+    TODO: Implement lifespan reduction of bees.
+    """

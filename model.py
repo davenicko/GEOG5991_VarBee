@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-# model.py - The driver for the VarBee model
+"""
+model.py - The driver for the VarBee model
 
-# Set environment
+Here one can set the model parameters for the VarBee model.
 
-# Place hives
-
-# Place flowers
-
-# Place bees in hives
-
-# Place mites
+The number of bees and the number of iterations has a big impact on the
+running time of the model. While the model is running, the progress is
+displayed in the terminal window as a percent the model is complete.
+"""
+# TODO: Place mites
 import csv
 import random
 import varbee
@@ -19,7 +18,7 @@ HIVES = {} #Store hives as a dict so bees can access the obj by location
 NUM_HIVES = 1
 HIVE_LOCATIONS = [(25, 25)] # Just one hive for now
 ENVIRONMENT = []
-NUM_ITERATIONS = 2000
+NUM_ITERATIONS = 500
 BEES = []
 rowlist = []
 heat_map = {}
@@ -45,7 +44,7 @@ hivechoice = random.choice([i for i in range(len(HIVES))])
 print(hivechoice)
 for j in range(NUM_BEES):
     BEES.append(varbee.Bee(environment=ENVIRONMENT,
-                hive_location=(25,25), hives=HIVES))
+                hive_location=(25,25), hives=HIVES, bees=BEES))
 
 # Make a heat map for all locations
 for i in range(len(ENVIRONMENT[0])):
@@ -55,16 +54,28 @@ for i in range(len(ENVIRONMENT[0])):
 def update():
 
     # Move Bees
-    for k in range(NUM_BEES):
-        # Move bees
-        BEES[k].update()
+    if len(BEES) > 0:
+        for k in range(len(BEES)):
+            # Move bees
+            BEES[k].update()
 
-    # Count the number of bees in the current location and add to a dict
-    for i in range(len(ENVIRONMENT)):
-        for j in range(len(ENVIRONMENT[0])):
-            for bee in BEES:
-                if tuple(bee.current_position) == (i, j):
-                    heat_map[(i, j)] += 1
+        # Count the number of bees in the current location and add to a dict
+        for i in range(len(ENVIRONMENT)):
+            for j in range(len(ENVIRONMENT[0])):
+                for bee in BEES:
+                    if tuple(bee.current_position) == (i, j):
+                        heat_map[(i, j)] += 1
+
+    # Cleanup dead insects
+    if BEES:
+        bees_to_remove = []
+        for i in range(len(BEES)):
+            if not BEES[i].alive:
+                bees_to_remove.append(BEES[i])
+
+        for i in bees_to_remove:
+            print("Removing BEE ", i, "Lifespan was ", i.lifespan)
+            BEES.remove(i)
 
 print("Percent completed:")
 for i in range(NUM_ITERATIONS):
