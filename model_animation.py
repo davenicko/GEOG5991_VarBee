@@ -11,15 +11,17 @@
 
 # Place mites
 import csv
-import random
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import varbee
+import random
 
-NUM_BEES = 50
+NUM_BEES = 100
 HIVES = {} #Store hives as a dict so bees can access the obj by location
 NUM_HIVES = 1
-HIVE_LOCATIONS = [(25, 25)] # Just one hive for now
+HIVE_LOCATIONS = [(25, 25)]
 ENVIRONMENT = []
-NUM_ITERATIONS = 2000
+NUM_ITERATIONS = 1
 BEES = []
 rowlist = []
 heat_map = {}
@@ -52,12 +54,14 @@ for i in range(len(ENVIRONMENT[0])):
     for j in range(len(ENVIRONMENT)):
         heat_map[(i, j)] = 0
 
-def update():
+def update(frame_number):
+    fig.clear()
 
     # Move Bees
-    for k in range(NUM_BEES):
-        # Move bees
-        BEES[k].update()
+    for i in range(NUM_ITERATIONS):
+        for k in range(NUM_BEES):
+            # Move bees
+            BEES[k].update()
 
     # Count the number of bees in the current location and add to a dict
     for i in range(len(ENVIRONMENT)):
@@ -66,11 +70,19 @@ def update():
                 if tuple(bee.current_position) == (i, j):
                     heat_map[(i, j)] += 1
 
-print("Percent completed:")
-for i in range(NUM_ITERATIONS):
-    print(int((i / NUM_ITERATIONS) * 100.0), "\r", end='', flush=True)
-    update()
-print()
+    plt.imshow(ENVIRONMENT, interpolation='none')
+    for i in range(NUM_BEES):
+        plt.scatter(BEES[i].get_position()[0], BEES[i].get_position()[1],
+                    color="yellow")
+    plt.scatter(BEES[0].hive_location[0], BEES[0].hive_location[1],
+                color = "pink")
+
+fig = plt.figure(figsize=(7, 7))
+ax = fig.add_axes([0, 0, 1, 1])
+
+model_animation = animation.FuncAnimation(fig, update, 200, interval=1,
+                                          repeat=False)
+plt.show()
 
 heat = []
 heat_initial = [i for i in range(len(ENVIRONMENT[0]))]
