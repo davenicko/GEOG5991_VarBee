@@ -8,6 +8,7 @@ The number of bees and the number of iterations has a big impact on the
 running time of the model. While the model is running, the progress is
 displayed in the terminal window as a percent the model is complete.
 """
+import sys
 import csv
 import random
 import varbee
@@ -20,22 +21,31 @@ HIVES = {} #Store hives as a dict so bees can access the obj by location
 NUM_HIVES = 1
 HIVE_LOCATIONS = [(25, 25)] # Just one hive for now
 ENVIRONMENT = []
+ENVIRONMENT_FILE = 'environment_weighted.csv'
 NUM_ITERATIONS = 1000
 BEES = []
 MITES = []
-rowlist = []
 heat_map = {}
 mite_pop = []
 bee_pop = []
 
+# Override the defaults with the arguments passed at the command line
+if sys.argv[1]: ENVIRONMENT_FILE = sys.argv[1]
+if sys.argv[2]: NUM_ITERATIONS = int(sys.argv[2])
+if sys.argv[3]: NUM_BEES = int(sys.argv[3])
+if sys.argv[4]: NUM_MITES = int(sys.argv[4])
+
 # Initialise environment
-with open('environment.csv', newline='') as file1:
+with open(ENVIRONMENT_FILE, newline='') as file1:
     DATASET = csv.reader(file1, quoting=csv.QUOTE_NONNUMERIC)
     for row in DATASET:
+        rowlist = []
         for values in row:
             rowlist.append(values)
         ENVIRONMENT.append(rowlist)
-        rowlist = []
+
+# Create the environment object
+environment_object = varbee.Environment(ENVIRONMENT)
 
 # Create the hive(s)
 for j in range(NUM_HIVES):
@@ -43,11 +53,8 @@ for j in range(NUM_HIVES):
                                            hive_location=HIVE_LOCATIONS[j],
                                            bees=BEES, num_iterations=NUM_ITERATIONS)
 
-print(HIVES)
-
 # Create Bees
 hivechoice = random.choice([i for i in range(len(HIVES))])
-print(hivechoice)
 for j in range(NUM_BEES):
     BEES.append(varbee.Bee(environment=ENVIRONMENT,
                 hive_location=(25,25), hives=HIVES, bees=BEES, mites=MITES))
@@ -74,7 +81,6 @@ def update():
     # Move Bees
     if BEES:
         for bee in BEES:
-            # Move bees
             bee.update()
 
         # Count the number of bees in the current location and add to a dict
@@ -99,7 +105,7 @@ def update():
         for i in bees_to_remove:
             BEES.remove(i)
 
-    # If there are mite, move them
+    # If there are mites, move them
     if MITES:
         mites_to_remove = []
         for mite in MITES:
@@ -108,6 +114,10 @@ def update():
 
         for i in mites_to_remove:
             MITES.remove(i)
+
+    print(BEES[0].environment[22][24])
+    # Update the environment
+    environment_object.update()
 
 
 for i in range(NUM_ITERATIONS):

@@ -42,7 +42,7 @@ class Insect():
         self.set_mode_list(mode_list)
         self.set_current_mode(current_mode)
         self.set_virus_present(virus_present)
-        self.set_environment(environment)
+        self.environment = environment
         self.alive = True
 
     def change_mode(self, mode):
@@ -249,13 +249,13 @@ class Bee(Insect):
                         self.store += 10
                         self.environment[self.current_position[1]]\
                                    [self.current_position[0]] -= 10
-                    #and set target to the hive
-                    self.current_target = self.hive_location
-                    #set the last target location and amount
-                    self.last_target_amount =\
-                        self.environment[self.current_position[1]]\
-                                   [self.current_position[0]]
-                    self.last_target_location = tuple(self.current_position)
+                        #and set target to the hive
+                        self.current_target = self.hive_location
+                        #set the last target location and amount
+                        self.last_target_amount =\
+                            self.environment[self.current_position[1]]\
+                                       [self.current_position[0]]
+                        self.last_target_location = tuple(self.current_position)
 
         if self.alive:
             self.take_move(self.current_target)
@@ -473,23 +473,18 @@ class Hive:
 
     def update(self):
         """
-        Update hive - increase the bee numbers
+        Update hive - increase the bee numbers by one bee per timestep
         """
-        # The hive has a chance of creating more bees.
-        if random.randint(0, 100) < 50:
-            self.bees.append(Bee(lifespan=100,
-                                 current_mode="SEARCH",
-                                 virus_present=False,
-                                 environment=self.environment,
-                                 mode_list=["SEARCH",
-                                            "FORAGE"],
-                                 hive_location=self.hive_location,
-                                 hives=self.bees[0].hives,
-                                 max_nectar_level=self.bees[0].get_max_nectar_level,
-                                 bees=self.bees))
-
-    def status(self):
-        print("Timestep = ", self.timestep, "/", self.num_iterations, "\r", end='')
+        self.bees.append(Bee(lifespan=100,
+                             current_mode="SEARCH",
+                             virus_present=False,
+                             environment=self.environment,
+                             mode_list=["SEARCH",
+                                        "FORAGE"],
+                             hive_location=self.hive_location,
+                             hives=self.bees[0].hives,
+                             max_nectar_level=self.bees[0].get_max_nectar_level,
+                             bees=self.bees))
 
     def get_hive_location(self):
         """
@@ -590,6 +585,7 @@ class Mite(Insect):
 
         self.lifespan -= 1
         if self.host_infected:
+            self.host_infected.lifespan -= 1
             if not self.host_infected.alive:
                 self.alive = False
         if random.randint(0, 45) > self.lifespan:
@@ -630,8 +626,11 @@ class Mite(Insect):
         """
         If in a hive there is a chance to reproduce and a chance to attach
         to a new bee.
+
+        The mite population will not increase if it is greater than four
+        times the bee population.
         """
-        if random.randint(0, 2000) > len(self.mites):
+        if random.randint(0, len(self.bees) * 4) > len(self.mites):
             self.mites.append(Mite(current_position=self.current_position,
                                    environment=self.environment,
                                    bees=self.bees, mites=self.mites))
@@ -655,3 +654,47 @@ class Mite(Insect):
     def get_position(self):
         """ Get the current position """
         return self.current_position
+
+class Environment:
+    """
+    The environment class is used to update the environment - i,e, the
+    "growth" of flowers
+    """
+    def __init__(self, environment):
+        self.environment = environment
+        self.replenishment = self.replenish_calc(environment)
+
+    def replenish_calc(self, environment):
+        """
+        Calculate a grid to determine how much to replenish the
+        environment by
+
+        environment: A list representing the environment
+
+        returns: A list containing how much to replenish the environment
+        """
+        temp_replenishment = []
+        original_environment = []
+        for row in environment:
+            temp_row = []
+            temp_original_environment = []
+            for value in row:
+                # The replenishment follows an exponential curve
+                temp_row.append(value**2/2000)
+                # copy the environment so we don't produce too many resources
+                temp_original_environment.append(value)
+            temp_replenishment.append(temp_row)
+            original_environment.append(temp_original_environment)
+        self.original_environment = original_environment
+        return temp_replenishment
+
+    def update(self):
+        """
+        Update the environment, based on the replenishment list
+        """
+        for row in range(len(self.environment)):
+            for val in range(len(self.environment[row])):
+                if self.environment[row][val] < self.original_environment[row][val]:
+                    #self.environment[row][val] += 1
+                    # self.environment[row][val] += self.replenishment[row][val]
+                    pass
