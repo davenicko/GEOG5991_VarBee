@@ -1,48 +1,127 @@
 #!/usr/bin/env python3
 """
-model.py - The driver for the VarBee model
+NAME
+    model.py - The driver for the VarBee model
 
-Here one can set the model parameters for the VarBee model.
+SYNOPSIS
+    python3 model.py File [number1] [number2] [number3]
 
-The number of bees and the number of iterations has a big impact on the
-running time of the model. While the model is running, the progress is
-displayed in the terminal window as a percent the model is complete.
+    File: A CSV file containing the environment
+    number1: The Number of iterations to run
+    number2: The number of bees to start with
+    number3: The number of mites to start with
+
+DESCRIPTION
+    The model simulates
+
+    The number of bees and the number of iterations has a big impact on the
+    running time of the model. While the model is running, the progress is
+    displayed in the terminal window as a percent the model is complete.
 """
+###############################################################################
+#                                                                             #
+#  Python library imports                                                     #
+#                                                                             #
+###############################################################################
 import sys
 import csv
 import random
-import varbee
 import matplotlib.pyplot as plt
 import numpy as np
 
+###############################################################################
+#                                                                             #
+#  Custom imports                                                             #
+#                                                                             #
+###############################################################################
+import varbee
+
+###############################################################################
+#                                                                             #
+#  Model parameters                                                           #
+#                                                                             #
+###############################################################################
+ENVIRONMENT_FILE = 'environment_weighted.csv'
 NUM_BEES = 40
 NUM_MITES = 40
-HIVES = {} #Store hives as a dict so bees can access the obj by location
 NUM_HIVES = 1
 HIVE_LOCATIONS = [(25, 25)] # Just one hive for now
-ENVIRONMENT = []
-ENVIRONMENT_FILE = 'environment_weighted.csv'
-NUM_ITERATIONS = 1000
+NUM_ITERATIONS = 100
+
+###############################################################################
+#                                                                             #
+#  Model storage structures                                                   #
+#                                                                             #
+###############################################################################
+HIVES = {} #Store hives as a dict so bees can access the obj by location
 BEES = []
+ENVIRONMENT = []
 MITES = []
-heat_map = {}
+bee_count = {}
 mite_pop = []
 bee_pop = []
 
-# Override the defaults with the arguments passed at the command line
-if sys.argv[1]: ENVIRONMENT_FILE = sys.argv[1]
-if sys.argv[2]: NUM_ITERATIONS = int(sys.argv[2])
-if sys.argv[3]: NUM_BEES = int(sys.argv[3])
-if sys.argv[4]: NUM_MITES = int(sys.argv[4])
+###############################################################################
+#                                                                             #
+#  Model start                                                                #
+#                                                                             #
+###############################################################################
+
+#Command line processing
+try:
+    if sys.argv[1]:
+        ENVIRONMENT_FILE = sys.argv[1]
+    if int(sys.argv[2]) > 0:
+        NUM_ITERATIONS = int(sys.argv[2])
+    if int(sys.argv[3]) > 0:
+        NUM_BEES = int(sys.argv[3])
+    if int(sys.argv[4]) > 0:
+        NUM_MITES = int(sys.argv[4])
+except:
+    pass
+
+# check all rows have same number of columns
+def col_check(input_list):
+    '''
+    Function to check all rows have the same number of columns.
+
+    returns:    True if all columns are the same, False otherwise
+    '''
+    incorrect_cols = []
+
+    for row in input_list:
+        col_zero = col_count(input_list[0])
+        if col_count(row) == col_zero:
+            incorrect_cols.append(0)
+        else:
+            incorrect_cols.append(1)
+
+    if sum(incorrect_cols) != 0:
+        return False
+    else:
+        return True
+
+def col_count(col):
+    count = 0
+    for value in col:
+        if value != '':
+            count += 1
+    return count
 
 # Initialise environment
 with open(ENVIRONMENT_FILE, newline='') as file1:
     DATASET = csv.reader(file1, quoting=csv.QUOTE_NONNUMERIC)
     for row in DATASET:
         rowlist = []
-        for values in row:
-            rowlist.append(values)
+        for value in row:
+            if value != '':
+                rowlist.append(int(value))
         ENVIRONMENT.append(rowlist)
+
+if not col_check(ENVIRONMENT):
+    print("The environment file does not have an equal number of columns.\
+          Model run aborted")
+    raise IndexError
 
 # Create the environment object
 environment_object = varbee.Environment(ENVIRONMENT)
@@ -51,7 +130,8 @@ environment_object = varbee.Environment(ENVIRONMENT)
 for j in range(NUM_HIVES):
     HIVES[HIVE_LOCATIONS[j]] = varbee.Hive(environment=ENVIRONMENT,
                                            hive_location=HIVE_LOCATIONS[j],
-                                           bees=BEES, num_iterations=NUM_ITERATIONS)
+                                           bees=BEES,
+                                           num_iterations=NUM_ITERATIONS)
 
 # Create Bees
 hivechoice = random.choice([i for i in range(len(HIVES))])
@@ -69,7 +149,7 @@ for i in range(NUM_MITES):
 # Make a blank heat map for all locations
 for i in range(len(ENVIRONMENT[0])):
     for j in range(len(ENVIRONMENT)):
-        heat_map[(i, j)] = 0
+        bee_count[(i, j)] = 0
 
 def update():
 
@@ -88,7 +168,7 @@ def update():
             for j in range(len(ENVIRONMENT[0])):
                 for bee in BEES:
                     if tuple(bee.current_position) == (i, j):
-                        heat_map[(i, j)] += 1
+                        bee_count[(i, j)] += 1
 
     # Hive actions (make more bees)
     if HIVES:
@@ -115,7 +195,6 @@ def update():
         for i in mites_to_remove:
             MITES.remove(i)
 
-    print(BEES[0].environment[22][24])
     # Update the environment
     environment_object.update()
 
@@ -127,7 +206,7 @@ for i in range(NUM_ITERATIONS):
           end='', flush=True)
     update()
 
-    # Log some useful information
+    # Log the bee and mite populations
     bee_pop.append(len(BEES))
     mite_pop.append(len(MITES))
 
@@ -152,12 +231,13 @@ plt.title("The Population of Bees and Mites. Timestep = %s" %NUM_ITERATIONS)
 
 plt.show()
 
+# Create a heatmap of the total number of bees in each position on the map
 heat = []
 heat_initial = [i for i in range(len(ENVIRONMENT[0]))]
 for i in range(len(ENVIRONMENT)):
     heat.append(heat_initial[:])
-for key in heat_map.keys():
-    heat[key[0]][key[1]] = heat_map[key]
+for key in bee_count.keys():
+    heat[key[0]][key[1]] = bee_count[key]
 
 with open('heatmap.csv', 'w', newline='') as file2:
     writer = csv.writer(file2)

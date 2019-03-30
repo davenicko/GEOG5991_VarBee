@@ -18,7 +18,7 @@ contained are as follows:
 import random
 import numpy as np
 
-class Insect():
+class Insect:
     """
     The Insect class is a super class used as the basis for the insects in the
     model. It contains the variables and methods common to all insect classes
@@ -42,7 +42,7 @@ class Insect():
         self.set_mode_list(mode_list)
         self.set_current_mode(current_mode)
         self.set_virus_present(virus_present)
-        self.environment = environment
+        self.set_environment(environment)
         self.alive = True
 
     def change_mode(self, mode):
@@ -55,70 +55,61 @@ class Insect():
 
     ###########################################################################
     #                                                                         #
-    # Get, set and del methods for each variable                              #
+    # Get, set and del methods                                                #
     #                                                                         #
     ###########################################################################
 
     def get_lifespan(self):
-        """return the lifespan"""
         return self._lifespan
 
     def get_current_mode(self):
-        """return the current mode"""
         return self._current_mode
 
     def get_virus_present(self):
-        """return the virus presence or absence"""
         return self._virus_present
 
     def get_environment(self):
-        """return the environment"""
         return self._environment
 
     def get_mode_list(self):
-        """return the mode list"""
         return self._mode_list
 
     def set_lifespan(self, value):
-        """Set the lifespan"""
         self._lifespan = value
 
     def set_current_mode(self, value):
-        """Set the current mode"""
         if value in self.mode_list:
             self._current_mode = value
 
     def set_virus_present(self, value):
-        """Set the virus presence or absence"""
         self._virus_present = value
 
     def set_environment(self, value):
-        """Set the environment"""
         self._environment = value
 
     def set_mode_list(self, value):
-        """Set the mode list"""
         self._mode_list = value
 
     def del_lifespan(self):
-        """Delete the lifespan"""
         del self._lifespan
 
     def del_current_mode(self):
-        """Delete the current mode"""
         del self._current_mode
 
     def del_virus_present(self):
-        """Delete the virus presence or absence"""
         del self._virus_present
 
     def del_environment(self):
-        """Delete the environment"""
         del self._environment
 
     def del_mode_list(self):
-        """Delete the mode list"""
         del self._mode_list
+
+    ###########################################################################
+    #                                                                         #
+    # End of get, set and del methods                                         #
+    #                                                                         #
+    ###########################################################################
 
     lifespan = property(get_lifespan, set_lifespan, del_lifespan,
                         "The lifespan of the Insect")
@@ -363,16 +354,15 @@ class Bee(Insect):
         # Set the initial position to that of the hive
         return self.hive_location
 
+    ###########################################################################
+    #                                                                         #
+    # Get, set and del methods                                                #
+    #                                                                         #
+    ###########################################################################
     def set_position(self, position):
-        """
-        Set the current position. Takes a numpy array
-        """
         self._current_position = position
 
     def set_hive_location(self, position):
-        """
-        Set the current hive location. Takes a tuple
-        """
         if (0 <= position[0] <= len(self.environment) and
                 0 <= position[1] <= len(self.environment)):
             self._hive_location = position
@@ -383,66 +373,40 @@ class Bee(Insect):
                                    len(self.environment[1]/2))
 
     def set_current_target(self, target):
-        """
-        Set the current target.
-
-        target: A tuple containing the target coordinates
-        """
         self._current_target = target
 
     def set_max_nectar_level(self, target):
-        """
-        Set the current target.
-        """
         self._max_nectar_level = target
 
     def get_position(self):
-        """
-        Get the current position
-        """
         return self._current_position
 
     def get_hive_location(self):
-        """
-        Get the current hive location
-        """
         return self._hive_location
 
     def get_current_target(self):
-        """
-        Get the current target
-        """
         return self._current_target
 
     def get_max_nectar_level(self):
-        """
-        Get the max nectar level
-        """
         return self._max_nectar_level
 
     def del_position(self):
-        """
-        Delete the current position
-        """
         del self._current_position
 
     def del_hive_locaton(self):
-        """
-        Delete the hive location
-        """
         del self._hive_location
 
     def del_current_target(self):
-        """
-        Delete the current target
-        """
         del self._current_target
 
     def del_max_nectar_level(self):
-        """
-        Delete the max nectar level
-        """
         del self._max_nectar_level
+
+    ###########################################################################
+    #                                                                         #
+    # End get, set and del methods                                            #
+    #                                                                         #
+    ###########################################################################
 
     current_position = property(get_position, set_position, del_position,
                                 "The current position")
@@ -486,16 +450,16 @@ class Hive:
                              max_nectar_level=self.bees[0].get_max_nectar_level,
                              bees=self.bees))
 
+    ###########################################################################
+    #                                                                         #
+    # Get, set and del methods                                                #
+    #                                                                         #
+    ###########################################################################
+
     def get_hive_location(self):
-        """
-        Get the current hive location
-        """
         return self._hive_location
 
     def set_hive_location(self, position):
-        """
-        Set the hive location, checking it lies within the environment
-        """
         if (0 <= position[0] <= len(self.environment) and
                 0 <= position[1] <= len(self.environment)):
             self._hive_location = position
@@ -506,24 +470,22 @@ class Hive:
                                    len(self.environment[1]/2))
 
     def del_hive_location(self):
-        """
-        Delete the current hive location
-        """
         del self._hive_location
 
     def get_environment(self):
-        """
-        Get the current environment
-        """
         return self._environment
 
     def set_environment(self, value):
-        """Set the environment"""
         self._environment = value
 
     def del_environment(self):
-        """Set the environment"""
         del self._environment
+
+    ###########################################################################
+    #                                                                         #
+    # End get, set and del methods                                            #
+    #                                                                         #
+    ###########################################################################
 
     environment = property(get_environment, set_environment, del_environment,
                            "The environment")
@@ -667,7 +629,7 @@ class Environment:
     def replenish_calc(self, environment):
         """
         Calculate a grid to determine how much to replenish the
-        environment by
+        environment by. Note that not all squares will replenish.
 
         environment: A list representing the environment
 
@@ -680,7 +642,7 @@ class Environment:
             temp_original_environment = []
             for value in row:
                 # The replenishment follows an exponential curve
-                temp_row.append(value**2/2000)
+                temp_row.append(int(value**2/2000))
                 # copy the environment so we don't produce too many resources
                 temp_original_environment.append(value)
             temp_replenishment.append(temp_row)
@@ -690,11 +652,9 @@ class Environment:
 
     def update(self):
         """
-        Update the environment, based on the replenishment list
+        Update the environment, based on the replenishment list.
         """
         for row in range(len(self.environment)):
             for val in range(len(self.environment[row])):
                 if self.environment[row][val] < self.original_environment[row][val]:
-                    #self.environment[row][val] += 1
-                    # self.environment[row][val] += self.replenishment[row][val]
-                    pass
+                    self.environment[row][val] += self.replenishment[row][val]

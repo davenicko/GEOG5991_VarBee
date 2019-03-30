@@ -17,18 +17,57 @@ import varbee
 import random
 
 def main():
+###############################################################################
+#                                                                             #
+#  Model parameters                                                           #
+#                                                                             #
+###############################################################################
     NUM_BEES = 40
     NUM_MITES = 20
-    HIVES = {} #Store hives as a dict so bees can access the obj by location
     NUM_HIVES = 1
-    HIVE_LOCATIONS = [(25, 25)]
-    ENVIRONMENT = []
     ENVIRONMENT_FILE = 'environment_weighted.csv'
     NUM_ITERATIONS = 1
+    HIVE_LOCATIONS = [(25, 25)]
+
+###############################################################################
+#                                                                             #
+#  Model storage structures                                                   #
+#                                                                             #
+###############################################################################
+    HIVES = {} #Store hives as a dict so bees can access the obj by location
+    ENVIRONMENT = []
     BEES = []
     MITES = []
     rowlist = []
-    heat_map = {}
+    bee_count = {}
+
+###############################################################################
+#                                                                             #
+#  Model start                                                                #
+#                                                                             #
+###############################################################################
+
+    #Command line processing
+    try:
+        if sys.argv[1]:
+            ENVIRONMENT_FILE = sys.argv[1]
+    except:
+        pass
+    try:
+        if int(sys.argv[2]) > 0:
+            NUM_ITERATIONS = int(sys.argv[2])
+    except:
+        pass
+    try:
+        if int(sys.argv[3]) > 0:
+            NUM_BEES = int(sys.argv[3])
+    except:
+        pass
+    try:
+        if int(sys.argv[4]) > 0:
+            NUM_MITES = int(sys.argv[4])
+    except:
+        pass
 
     # Initialise environment
     with open(ENVIRONMENT_FILE, newline='') as file1:
@@ -39,17 +78,22 @@ def main():
             ENVIRONMENT.append(rowlist)
             rowlist = []
 
+    if not col_check(ENVIRONMENT):
+        print("The environment file does not have an equal number of columns.\
+              Model run aborted")
+        raise IndexError
+
     # Create the hive(s)
     for j in range(NUM_HIVES):
         HIVES[HIVE_LOCATIONS[j]] = varbee.Hive(environment=ENVIRONMENT,
                                                hive_location=HIVE_LOCATIONS[j],
                                                bees=BEES, num_iterations=NUM_ITERATIONS)
 
-    print(HIVES)
+    # Create the environment object
+    environment_object = varbee.Environment(ENVIRONMENT)
 
     # Create Bees
     hivechoice = random.choice([i for i in range(len(HIVES))])
-    print(hivechoice)
     for j in range(NUM_BEES):
         BEES.append(varbee.Bee(environment=ENVIRONMENT,
                     hive_location=(25,25), hives=HIVES, bees=BEES, mites=MITES))
@@ -64,7 +108,7 @@ def main():
     # Make a heat map for all locations
     for i in range(len(ENVIRONMENT[0])):
         for j in range(len(ENVIRONMENT)):
-            heat_map[(i, j)] = 0
+            bee_count[(i, j)] = 0
 
     def update(frame_number):
         print("Timestep = ", frame_number, "/400\r", end='')
@@ -74,8 +118,8 @@ def main():
         if MITES:
             for mite in MITES:
                 mite.update()
-               # plt.scatter(mite.get_position()[0], mite.get_position()[1],
-               #             color="red")
+                plt.scatter(mite.get_position()[0], mite.get_position()[1],
+                            color="red")
 
         # Move Bees
         if BEES:
@@ -88,7 +132,7 @@ def main():
                 for j in range(len(ENVIRONMENT[0])):
                     for bee in BEES:
                         if tuple(bee.current_position) == (i, j):
-                            heat_map[(i, j)] += 1
+                            bee_count[(i, j)] += 1
 
             for bee in BEES:
                 plt.scatter(bee.get_position()[0], bee.get_position()[1],
@@ -122,6 +166,9 @@ def main():
             for mite in mites_to_remove:
                 MITES.remove(mite)
 
+        # Update the environment - flower replenishment
+        environment_object.update()
+
     fig = plt.figure(figsize=(7, 7))
     ax = fig.add_axes([0, 0, 1, 1])
 
@@ -129,17 +176,50 @@ def main():
                                               repeat=False)
     plt.show()
 
+    # Create a heatmap of the total number of bees in each position
+    # on the map
     heat = []
     heat_initial = [i for i in range(len(ENVIRONMENT[0]))]
     for i in range(len(ENVIRONMENT)):
         heat.append(heat_initial[:])
-    for key in heat_map.keys():
-        heat[key[0]][key[1]] = heat_map[key]
+    for key in bee_count.keys():
+        heat[key[0]][key[1]] = bee_count[key]
 
     with open('heatmap.csv', 'w', newline='') as file2:
         writer = csv.writer(file2)
         for row in heat:
             writer.writerow(row)
+
+# check all rows have same number of columns
+def col_check(input_list):
+    '''
+    Function to check all rows have the same number of columns.
+
+    returns:    True if all columns are the same, False otherwise
+    '''
+    incorrect_cols = []
+
+    for row in input_list:
+        col_zero = col_count(input_list[0])
+        if col_count(row) == col_zero:
+            incorrect_cols.append(0)
+        else:
+            incorrect_cols.append(1)
+
+    if sum(incorrect_cols) != 0:
+        return False
+    else:
+        return True
+
+def col_count(col):
+    '''
+    Function to count the values in a list that contain a value
+    '''
+    count = 0
+    for value in col:
+        if value != '':
+            count += 1
+    return count
 
 if __name__ == "__main__":
     main()
