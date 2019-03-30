@@ -39,6 +39,8 @@ def main():
     BEES = []
     MITES = []
     rowlist = []
+    mite_pop = []
+    bee_pop = []
     bee_count = {}
 
 ###############################################################################
@@ -168,6 +170,10 @@ def main():
 
         # Update the environment - flower replenishment
         environment_object.update()
+    
+        # Log the bee and mite populations
+        bee_pop.append(len(BEES))
+        mite_pop.append(len(MITES))
 
     fig = plt.figure(figsize=(7, 7))
     ax = fig.add_axes([0, 0, 1, 1])
@@ -188,6 +194,12 @@ def main():
     with open('heatmap.csv', 'w', newline='') as file2:
         writer = csv.writer(file2)
         for row in heat:
+            writer.writerow(row)
+
+    with open('results.csv', 'w', newline='') as file3:
+        writer = csv.writer(file3)
+        for i in range(len(bee_pop)):
+            row = [i, bee_pop[i], mite_pop[i]]
             writer.writerow(row)
 
 # check all rows have same number of columns

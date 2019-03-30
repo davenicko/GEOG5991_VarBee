@@ -36,3 +36,12 @@ Note that the model_animation.py file will also take the same parameters, but
 in this instance the number of iterations will dictate how many time steps are
 performed between frames, with frames displayed every (number of iterations)
 time steps
+
+The model outputs two files:
+
+heatmap.csv
+A comma separated value file containing the total number of bees that have ever
+been in each of the environment locations.
+
+results.csv
+The total number of bees and mites alive at each time step

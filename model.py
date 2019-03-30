@@ -243,3 +243,9 @@ with open('heatmap.csv', 'w', newline='') as file2:
     writer = csv.writer(file2)
     for row in heat:
         writer.writerow(row)
+
+with open('results.csv', 'w', newline='') as file3:
+    writer = csv.writer(file3)
+    for i in range(len(bee_pop)):
+        row = [i, bee_pop[i], mite_pop[i]]
+        writer.writerow(row)
