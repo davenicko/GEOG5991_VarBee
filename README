@@ -5,13 +5,33 @@ model.py  		   - The non-graphical interface of the model
 model_animation.py - The model featuring an animation of each timestep
 
 In order to run the model you must provide an "Environment" file as a csv file
-which should be saved in the current working directory. At it's simplest, the
-model can be run by the following command:
+which should be saved in the current working directory. This file must be named
+"environment.csv" unless the file is passes to the model at the command line.
 
+At it's simplest, the model can be run by the following commands in 
+windows/linux.
+
+###############################################################################
 WINDOWS
+-------------------------------------------------------------------------------
+Open a command prompt window (usually press <windows-key>-r; type cmd; press
+enter
+
+Run the model using:
 python3 model.py
 
-LINUX
+NOTE: If using python3 does not work, try python instead. If that doesn't work,
+you may not have the python executable in the windows path. If not then either
+add the location of the python executable to the path or reference the python
+executable directly, i.e.:
+
+C:\<path to python>\python(3).exe model.py
+
+###############################################################################
+LINUX (should also work in MacOS X, but not tested)
+-------------------------------------------------------------------------------
+Open a terminal window.
+Run the model using:
 python3 model.py
 
 or
@@ -19,6 +39,7 @@ or
 ./model.py
 
 if the file is set to be executable and you are in the model directory
+###############################################################################
 
 The model also takes command line parameters if provided in the correct order:
 
@@ -32,10 +53,7 @@ For example, to use a file called "myfile.csv" with 500 iterations, 40 bees and
 
 python3 model.py myfile,csv 500 40 10
 
-Note that the model_animation.py file will also take the same parameters, but
-in this instance the number of iterations will dictate how many time steps are
-performed between frames, with frames displayed every (number of iterations)
-time steps
+Note that the model_animation.py file will also take the same parameters.
 
 The model outputs two files:
 

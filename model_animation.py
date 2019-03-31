@@ -11,6 +11,7 @@
 
 # Place mites
 import csv
+import sys
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import varbee
@@ -27,6 +28,7 @@ def main():
     NUM_HIVES = 1
     ENVIRONMENT_FILE = 'environment_weighted.csv'
     NUM_ITERATIONS = 1
+    NUM_FRAMES = 100
     HIVE_LOCATIONS = [(25, 25)]
 
 ###############################################################################
@@ -57,7 +59,7 @@ def main():
         pass
     try:
         if int(sys.argv[2]) > 0:
-            NUM_ITERATIONS = int(sys.argv[2])
+            NUM_FRAMES = int(sys.argv[2])
     except:
         pass
     try:
@@ -113,7 +115,7 @@ def main():
             bee_count[(i, j)] = 0
 
     def update(frame_number):
-        print("Timestep = ", frame_number, "/400\r", end='')
+        print("Timestep = ", frame_number, "/ ", NUM_FRAMES, "\r", end='')
         fig.clear()
 
         # Process mites
@@ -170,7 +172,7 @@ def main():
 
         # Update the environment - flower replenishment
         environment_object.update()
-    
+
         # Log the bee and mite populations
         bee_pop.append(len(BEES))
         mite_pop.append(len(MITES))
@@ -178,7 +180,7 @@ def main():
     fig = plt.figure(figsize=(7, 7))
     ax = fig.add_axes([0, 0, 1, 1])
 
-    model_animation = animation.FuncAnimation(fig, update, 400, interval=1,
+    model_animation = animation.FuncAnimation(fig, update, NUM_FRAMES, interval=1,
                                               repeat=False)
     plt.show()
 
