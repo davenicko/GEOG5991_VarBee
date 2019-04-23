@@ -1,8 +1,8 @@
 This model consists of the following core files:
 
-varbee.py 		   - The classes that the model uses
-model.py  		   - The non-graphical interface of the model
-model_animation.py - The model featuring an animation of each timestep
+varbee.py 		      - The classes that the model uses
+model.py  		      - The non-graphical interface of the model
+model_animation.py  - The model featuring an animation of each timestep
 
 In order to run the model you must provide an "Environment" file as a csv file
 which should be saved in the current working directory. This file must be named
@@ -51,7 +51,7 @@ The model also takes command line parameters if provided in the correct order:
 For example, to use a file called "myfile.csv" with 500 iterations, 40 bees and
 10 mites enter:
 
-python3 model.py myfile,csv 500 40 10
+python3 model.py myfile.csv 500 40 10
 
 Note that the model_animation.py file will also take the same parameters.
 
